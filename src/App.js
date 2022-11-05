@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import Todo from './components/Todo'
 import FilterButton from './components/FilterButton'
 import Form from './components/Form'
+import {nanoid} from "nanoid"
 // eslint-disable-next-line
 
 React.createElement("header", null,
@@ -9,29 +10,59 @@ React.createElement("h1", null, "Mozilla Developer Network")
 );
 
 function App(props) {
-  console.log(props.headButton)
-  
-  function addTask(name){
-    alert(name);
+  // console.log(props.headButton)
+  const [tasks, setTasks] = useState(props.tasks);
+
+  function toggleTaskCompleted(id) {
+    const updatedTasks = tasks.map((task) => {
+      // if this task has the same ID as the edited task
+      if (id === task.id) {
+        // use object spread to make a new object
+        // whose `completed` prop has been inverted
+        return {...task, completed: !task.completed}
+      }
+      return task;
+    });
+    setTasks(updatedTasks);
+    console.log(tasks)
   }
 
-  const taskList = props.tasks?.map((task) => (
-      <Todo 
-        name={task.name} 
-        completed={task.completed} 
-        id={task.id} 
-        key={task.id}
+  function deleteTask(id){
+    const remainingTasks = tasks.filter((task) => id !== task.id);
+    setTasks(remainingTasks);
+  }
+
+  const taskList = tasks.map((task) => (
+    <Todo 
+      name={task.name} 
+      completed={task.completed} 
+      id={task.id} 
+      key={task.id}
+      toggleTaskCompleted={toggleTaskCompleted}
+      deleteTask={deleteTask}
+    />
+  ));
+
+  
+  const tasksNone = taskList.length !== 1 ? 'tasks' : 'task';
+  const headingText = `${taskList.length} ${tasksNone} remaining`;
+  
+  function addTask(name){
+    // alert(name);
+    const newTask = { id: `todo-${nanoid()}`, name, completed: false };
+    setTasks([...tasks, newTask]);
+  }
+
+  
+
+  const headButton = props.headButton.map((button) => (
+      <FilterButton 
+        name={button.name} 
+        id={button.id} 
+        key={button.id}
       />
     )
   );
-  const headButton = props.headButton?.map((button) => (
-    <FilterButton 
-      name={button.name} 
-      id={button.id} 
-      key={button.id}
-    />
-  )
-);
   //const subject = props.subject;
   return (
     <div className="todoapp stack-large">
@@ -41,7 +72,7 @@ function App(props) {
         {headButton}
       </div>
       <h2 id="list-heading">
-        3 tasks remaining
+        {headingText}
       </h2>
       <ul
         role="list"
